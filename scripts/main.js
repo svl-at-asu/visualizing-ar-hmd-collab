@@ -6,10 +6,28 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 // ================= CONSTANTS =================
 
+// Define the program constants.
+const numTeams = 6;
+const numTrialsPerTeam = 12;
+const thresholdAngle = 43.3;
+
 // Set the dimensions of the canvas / graph
 var margin = { top: 50, right: 50, bottom: 50, left: 50 },
     width = 1000 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+	height = 600 - margin.top - margin.bottom;
+
+var pos_margin = { top: 50, right: 50, bottom: 50, left: 50 },
+	pos_width = 600 - margin.left - margin.right,
+	pos_height = 600 - margin.top - margin.bottom;
+
+// Define the color scheme and legend data.
+const legendData = [
+	{ text: "P1 Angle", color: "steelblue" },
+	{ text: "P2 Angle", color: "black" },
+	{ text: "Chart Angle", color: "orange" },
+	{ text: "Distance", color: "grey" },
+	{ text: "Angle Threshold", color: "red" }
+];
 
 
 // =============================================
@@ -40,8 +58,8 @@ const highlightRanges = [
 	{ start: 105, end: 110, color: "blue", opacity: 0.2, showOpacity: 1.0, label: "Same Space" }
 ];
 
-drawHighlightChart(4, 1, ".currentWork", highlightRanges);
-drawPositionHighlightChart(4, 1, ".currentWork", highlightRanges);
+drawHighlightChart(4, 1, ".chartContainer", highlightRanges);
+drawPositionHighlightChart(4, 1, ".chartContainer", highlightRanges);
 
 
 // =============================================
@@ -66,7 +84,7 @@ async function drawHighlightChart(teamNum, trialNum, containingDiv, ranges) {
 	// Format the data (parsing the strings to their appropriate datatypes)
 	data.forEach(function (d) {
 		d.time = parseTime(d.time);
-		//console.log(d);
+		console.log(d);
 		d.p1_angle = Number(d.p1_angle);
 		d.p2_angle = Number(d.p2_angle);
 		d.distance = Number(d.distance);
