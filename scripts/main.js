@@ -96,12 +96,30 @@ updateCharts(4, 1, ".chartContainer", highlightRanges);
 // =============== INPUT HANDLERS ===============
 
 const startSlider = document.getElementById("startTimeSlider");
+const endSlider = document.getElementById("endTimeSlider");
 
 startSlider.oninput = function () {
 	//console.log("Slider updated to: " + startSlider.value);
 
+	// Update the range of the end slider.
+	endSlider.min = startSlider.value;
+
 	// Update the highlight ranges (model/data).
-	updateSliderHighlightRange("Slider", startSlider.value, 110);
+	updateSliderHighlightRange("Slider", startSlider.value, endSlider.value);
+
+	// Update each chart based on the new ranges (view).
+	updateTimeHighlight();
+	updatePositionHighlight();
+}
+
+endSlider.oninput = function () {
+	//console.log("Slider updated to: " + startSlider.value);
+
+	// Update the range of the start slider.
+	startSlider.max = endSlider.value;
+
+	// Update the highlight ranges (model/data).
+	updateSliderHighlightRange("Slider", startSlider.value, endSlider.value);
 
 	// Update each chart based on the new ranges (view).
 	updateTimeHighlight();
@@ -573,10 +591,14 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 function updateSliderHighlightRange(rangeId, startTime, endTime) {
 	// Get a reference to the range to update.
 	var range = highlightRanges.find(r => { return r.id == rangeId; });
-	console.log("Found range: " + range.id);
+
 	// Update the start and end time of the given range.
-	range.range.start = startTime;
-	range.range.end = endTime;
+	if (startTime != null) {
+		range.range.start = startTime;
+	}
+	if (endTime != null) {
+		range.range.end = endTime;
+    }
 }
 
 // =============================================
