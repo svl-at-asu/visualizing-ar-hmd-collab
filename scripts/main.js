@@ -33,6 +33,15 @@ const legendData = [
 // =============================================
 
 
+// ================= VARIABLES =================
+
+// References to the positions on the participant positions charts.
+var p1_positions;
+var p2_positions;
+
+// =============================================
+
+
 // ================= FUNCTIONS =================
 
 // Define function for parsing datetimes.
@@ -137,8 +146,55 @@ function updateTimeHighlight() {
 	drawHighlightRectangles(anglesSvg, highlightRanges);
 }
 
-function updatePositionHighlight() {
+function drawUserPositions() {
 
+	// Update the positions for participant 1.
+	p1_positions
+		.attr("fill", function (d) {
+			var opacity;
+			for (let index in highlightRanges) {
+				if (xScale(d.time) >= customXScale(highlightRanges[index].range.start) && xScale(d.time) <= customXScale(highlightRanges[index].range.end)) {
+					opacity = highlightRanges[index].range.color;
+				}
+			};
+
+			return opacity;
+		}).style("opacity", function (d, r) {
+			var opacity = 0.1;
+			for (let index in highlightRanges) {
+				if (xScale(d.time) >= customXScale(highlightRanges[index].range.start) && xScale(d.time) <= customXScale(highlightRanges[index].range.end)) {
+					opacity = highlightRanges[index].range.showOpacity;
+				}
+			};
+
+			return opacity;
+		});
+
+	// Update the positions for participant 2.
+	p2_positions
+		.attr("fill", function (d) {
+			var opacity;
+			for (let index in highlightRanges) {
+				if (xScale(d.time) >= customXScale(highlightRanges[index].range.start) && xScale(d.time) <= customXScale(highlightRanges[index].range.end)) {
+					opacity = highlightRanges[index].range.color;
+				}
+			};
+
+			return opacity;
+		}).style("opacity", function (d, r) {
+			var opacity = 0.1;
+			for (let index in highlightRanges) {
+				if (xScale(d.time) >= customXScale(highlightRanges[index].range.start) && xScale(d.time) <= customXScale(highlightRanges[index].range.end)) {
+					opacity = highlightRanges[index].range.showOpacity;
+				}
+			};
+
+			return opacity;
+		});
+}
+
+function updatePositionHighlight() {
+	drawUserPositions();
 }
 
 async function drawHighlightChart(teamNum, trialNum, ranges) {
@@ -342,7 +398,7 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 		.range([pos_height, 0])
 		.domain([0, 5]);
 
-	positionsSvg.selectAll("dot")
+	p1_positions = positionsSvg.selectAll("dot")
 		.data(data)
 		.enter()
 		.append("circle")
@@ -371,7 +427,7 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 			return opacity;
 		});
 
-	positionsSvg.selectAll("rect")
+	p2_positions = positionsSvg.selectAll("rect")
 		.data(data)
 		.enter()
 		.append("rect")
