@@ -7,6 +7,8 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 // ================= CONSTANTS =================
 
 // Define the program constants.
+const team_number = 4;
+const trial_number = 2;
 const numTeams = 6;
 const numTrialsPerTeam = 12;
 const thresholdAngle = 43.3;
@@ -38,6 +40,7 @@ const legendData = [
 // References to the positions on the participant positions charts.
 var p1_positions;
 var p2_positions;
+//var trial_time;
 
 // =============================================
 
@@ -46,14 +49,31 @@ var p2_positions;
 
 // Define function for parsing datetimes.
 var parseTime = d3.timeParse("%m/%d/%Y %H:%M:%S %p");
+var parseTrialTime = d3.timeParse("%M:%S");
 
 // =============================================
 
 
 // =================== MAIN ====================
 
+// Read the data.
+const positionData = await d3.csv("data/Angles_Team" + team_number + "_Trial" + trial_number + ".csv");
+
+// Format the data (parsing the strings to their appropriate datatypes)
+const trial_start = parseTime(positionData[0].time);
+
+positionData.forEach(function (d) {
+	//d.time = parseTime(d.time);
+	d.time = getPositionSeconds(d.time, trial_start);
+	d.p1_angle = Number(d.p1_angle);
+	d.p2_angle = Number(d.p2_angle);
+	d.distance = Number(d.distance);
+});
+
 // Set the time scale for the x axis and linear scale for the y axis.
-const xScale = d3.scaleTime().range([0, width]);
+const xScale = d3.scaleLinear()
+					.range([0, width])
+					.domain(d3.extent(positionData, function (d) { return d.time; }));
 const yScale = d3.scaleLinear().range([height, 0]);
 
 var customXScale = d3.scaleLinear().range([0, width]).domain([0, 120])
@@ -88,7 +108,9 @@ var positionsSvg = d3.select(".chartContainer").append("svg")
 	.attr("transform",
 		"translate(" + pos_margin.left + "," + pos_margin.top + ")");
 
-updateCharts(4, 1, ".chartContainer", highlightRanges);
+updateCharts(team_number, trial_number, ".chartContainer", highlightRanges);
+
+drawEventLines(team_number, trial_number);
 
 // =============================================
 
@@ -217,20 +239,9 @@ function updatePositionHighlight() {
 
 async function drawHighlightChart(teamNum, trialNum, ranges) {
 	
-	const data = await d3.csv("data/Angles_Team" + teamNum + "_Trial" + trialNum + ".csv");
-	//console.log(data);
-
-	// Format the data (parsing the strings to their appropriate datatypes)
-	data.forEach(function (d) {
-		d.time = parseTime(d.time);
-		//console.log(d);
-		d.p1_angle = Number(d.p1_angle);
-		d.p2_angle = Number(d.p2_angle);
-		d.distance = Number(d.distance);
-	});
+	console.log(positionData[0].time);
 
 	// Set the time scale range based on the data's time range.
-	xScale.domain(d3.extent(data, function (d) { return d.time; }));
 	yScale.domain([0, 180]);
 
 	// Set distance scale as a constant 5 meters to represent the maximum of the space.
@@ -258,14 +269,14 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 
 	var svgPaths = anglesSvg.append("g");
 
-	svgPaths.append("path").datum(data)
+	svgPaths.append("path").datum(positionData)
 		.attr("fill", "none")
 		.attr("stroke", legendData[0].color)
 		.attr("stroke-linejoin", "round")
 		.attr("stroke-linecap", "round")
 		.attr("stroke-width", 1.5)
 		.attr("d", p1_line);
-	svgPaths.append("path").datum(data)
+	svgPaths.append("path").datum(positionData)
 		.attr("fill", "none")
 		.attr("stroke", legendData[1].color)
 		.attr("stroke-linejoin", "round")
@@ -273,7 +284,7 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 		.attr("stroke-width", 1.5)
 		.attr("d", p2_line);
 
-	svgPaths.append("path").datum(data)
+	svgPaths.append("path").datum(positionData)
 		.attr("fill", "none")
 		.attr("stroke", legendData[2].color)
 		.attr("stroke-linejoin", "round")
@@ -283,7 +294,7 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 		.style("opacity", 0.8)
 		.attr("d", chart_line);
 
-	svgPaths.append("path").datum(data)
+	svgPaths.append("path").datum(positionData)
 		.attr("fill", "none")
 		.attr("stroke", legendData[3].color)
 		.attr("stroke-linejoin", "round")
@@ -394,21 +405,6 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 
 async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, ranges) {
 
-	const data = await d3.csv("data/Angles_Team" + teamNum + "_Trial" + trialNum + ".csv");
-	//console.log(data);
-
-	// Format the data (parsing the strings to their appropriate datatypes)
-	data.forEach(function (d) {
-		d.time = parseTime(d.time);
-		//console.log(d);
-		d.p1_angle = Number(d.p1_angle);
-		d.p2_angle = Number(d.p2_angle)
-		d.p1_x = Number(d.p1_x);
-		d.p1_y = Number(d.p1_y);
-		d.distance = Number(d.distance);
-	});
-
-
 	var positionScatterPlotXScale = d3.scaleLinear()
 		.range([0, pos_width])
 		.domain([-2.5, 2.5]);
@@ -417,7 +413,7 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 		.domain([0, 5]);
 
 	p1_positions = positionsSvg.selectAll("dot")
-		.data(data)
+		.data(positionData)
 		.enter()
 		.append("circle")
 		.attr("fill", function (d) {
@@ -446,7 +442,7 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 		});
 
 	p2_positions = positionsSvg.selectAll("rect")
-		.data(data)
+		.data(positionData)
 		.enter()
 		.append("rect")
 		.attr("fill", function (d) {
@@ -583,6 +579,40 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 		.text(function (d) { return d.range.label; });
 }
 
+async function drawEventLines(teamNum, trialNum) {
+	//console.log("loading...");
+	const data = await d3.csv("data/VideoEncodingEventTable.csv");
+	//console.log(data);
+
+	// Format the data (parsing the strings to their appropriate datatypes)
+	data.forEach(function (d) {
+		d[" Trial Time"] = getTrialSeconds(d[" Trial Time"]);
+		//console.log(d);
+		d["Team"] = Number(d["Team"]);
+		d[" Trial"] = Number(d[" Trial"]);
+	});
+
+	var trialData = data.filter(d => { return d["Team"] == teamNum && d[" Trial"] == trialNum; });
+	//console.log(trialData);
+
+	//xScale.domain(trial_time);
+
+	// Create the group on the SVG.
+	var eventLines = anglesSvg.append("g");
+
+	// Add the event lines.
+	eventLines.selectAll("line")
+		.data(trialData)
+		.enter().append("line")
+		.attr("class", "y")
+		.attr("stroke", "red")
+		.style("opacity", 0.5)
+		.attr("x1", function (d) { return xScale(d[" Trial Time"]); })
+		.attr("x2", function (d) { return xScale(d[" Trial Time"]); })
+		.attr("y1", 0)
+		.attr("y2", height);
+}
+
 // =============================================
 
 
@@ -599,6 +629,16 @@ function updateSliderHighlightRange(rangeId, startTime, endTime) {
 	if (endTime != null) {
 		range.range.end = endTime;
     }
+}
+
+function getPositionSeconds(dateTimeString, trialStart) {
+	var dateTime = parseTime(dateTimeString);
+	return 60 * (dateTime.getMinutes() - trialStart.getMinutes()) + (dateTime.getSeconds() - trialStart.getSeconds());
+}
+
+function getTrialSeconds(dateTimeString) {
+	var dateTime = parseTrialTime(dateTimeString);
+	return 60 * dateTime.getMinutes() + dateTime.getSeconds();
 }
 
 // =============================================
