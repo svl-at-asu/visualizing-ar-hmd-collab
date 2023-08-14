@@ -110,7 +110,10 @@ var positionsSvg = d3.select(".chartContainer").append("svg")
 
 updateCharts(team_number, trial_number, ".chartContainer", highlightRanges);
 
-drawEventLines(team_number, trial_number);
+if (document.getElementById("chkShowEvents").checked) {
+
+	drawEventLines(team_number, trial_number);
+}
 
 // =============================================
 
@@ -119,6 +122,7 @@ drawEventLines(team_number, trial_number);
 
 const startSlider = document.getElementById("startTimeSlider");
 const endSlider = document.getElementById("endTimeSlider");
+const showEventsCheckbox = document.getElementById("chkShowEvents");
 
 startSlider.oninput = function () {
 	//console.log("Slider updated to: " + startSlider.value);
@@ -146,6 +150,10 @@ endSlider.oninput = function () {
 	// Update each chart based on the new ranges (view).
 	updateTimeHighlight();
 	updatePositionHighlight();
+}
+
+showEventsCheckbox.onclick = function () {
+	updateEventLines(team_number, trial_number);
 }
 
 
@@ -604,13 +612,25 @@ async function drawEventLines(teamNum, trialNum) {
 	eventLines.selectAll("line")
 		.data(trialData)
 		.enter().append("line")
-		.attr("class", "y")
+		.attr("class", "y eventLine")
 		.attr("stroke", "red")
 		.style("opacity", 0.5)
 		.attr("x1", function (d) { return xScale(d[" Trial Time"]); })
 		.attr("x2", function (d) { return xScale(d[" Trial Time"]); })
 		.attr("y1", 0)
 		.attr("y2", height);
+}
+
+function updateEventLines(teamNum, trialNum) {
+
+	// Clear the existing event lines.
+	anglesSvg.selectAll(".eventLine").remove();
+
+	// If the box is checked, draw the event lines.
+	if (showEventsCheckbox.checked) {
+
+		drawEventLines(team_number, trial_number);
+	}
 }
 
 // =============================================
