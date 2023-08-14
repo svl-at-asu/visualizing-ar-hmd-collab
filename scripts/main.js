@@ -6,21 +6,38 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 // ================= CONSTANTS =================
 
+// Display constants.
+const angles_chart_width = 1000; //1400;
+const angles_chart_height = 600;
+const positions_chart_width = 600; //0;
+const positions_chart_height = 600; //0;
+
+const title_font_size = 24;
+const axis_labels_font_size = 20;
+const legend_labels_font_size = 16;
+const legend_labels_vertical_scale = 30;
+const legend_rectangle_size = 25;
+
+const angles_chart_x_offset = 30;
+const positions_chart_x_offset = 0;
+
+const positions_chart_y_axis_offset = 30;
+
 // Define the program constants.
-const team_number = 4;
-const trial_number = 2;
+const team_number = 4; //1;
+const trial_number = 1; //2;
 const numTeams = 6;
 const numTrialsPerTeam = 12;
 const thresholdAngle = 43.3;
 
 // Set the dimensions of the canvas / graph
 var margin = { top: 50, right: 50, bottom: 50, left: 50 },
-    width = 1000 - margin.left - margin.right,
-	height = 600 - margin.top - margin.bottom;
+	width = angles_chart_width - margin.left - margin.right,
+	height = angles_chart_height - margin.top - margin.bottom;
 
-var pos_margin = { top: 50, right: 50, bottom: 50, left: 50 },
-	pos_width = 600 - margin.left - margin.right,
-	pos_height = 600 - margin.top - margin.bottom;
+var pos_margin = { top: 50, right: 50, bottom: 50, left: 80 },
+	pos_width = positions_chart_width - margin.left - margin.right,
+	pos_height = positions_chart_height - margin.top - margin.bottom;
 
 // Define the color scheme and legend data.
 const legendData = [
@@ -72,20 +89,20 @@ positionData.forEach(function (d) {
 
 // Set the time scale for the x axis and linear scale for the y axis.
 const xScale = d3.scaleLinear()
-					.range([0, width])
+					.range([angles_chart_x_offset, width + angles_chart_x_offset])
 					.domain(d3.extent(positionData, function (d) { return d.time; }));
 const yScale = d3.scaleLinear().range([height, 0]);
 
-var customXScale = d3.scaleLinear().range([0, width]).domain([0, 120])
+var customXScale = d3.scaleLinear().range([angles_chart_x_offset, width + angles_chart_x_offset]).domain([0, 120])
 
 // Set the distance scale for the participant distance.
 const distScale = d3.scaleLinear().range([height, 0]);
 
 const highlightRanges = [
-	//{ id: "Separate Space", range: { start: 25, end: 30, color: "crimson", opacity: 0.2, showOpacity: 1.0, label: "Separate Space" }},
-	//{ id: "Mixed Space", range: { start: 87, end: 90, color: "darkgreen", opacity: 0.2, showOpacity: 1.0, label: "Mixed Space" }},
-	//{ id: "Same Space", range: { start: 105, end: 110, color: "blue", opacity: 0.2, showOpacity: 1.0, label: "Same Space" } },
-	{ id: "Slider", range: { start: 105, end: 110, color: "blue", opacity: 0.2, showOpacity: 1.0, label: "Selection" } },
+	{ id: "Separate Space", range: { start: 25, end: 30, color: "crimson", opacity: 0.2, showOpacity: 1.0, label: "Separate Space" }},
+	{ id: "Mixed Space", range: { start: 87, end: 90, color: "darkgreen", opacity: 0.2, showOpacity: 1.0, label: "Mixed Space" }},
+	{ id: "Same Space", range: { start: 105, end: 110, color: "blue", opacity: 0.2, showOpacity: 1.0, label: "Same Space" } },
+	//{ id: "Slider", range: { start: 105, end: 110, color: "blue", opacity: 0.2, showOpacity: 1.0, label: "Selection" } },
 ];
 
 // append the svg obgect to the body of the page
@@ -343,14 +360,14 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 
 	// Add the X Axis
 	anglesSvg.append("g")
-		.attr("transform", "translate(0," + height + ")")
+		.attr("transform", "translate(" + angles_chart_x_offset + "," + height + ")")
 		.attr("font-family", "Lato")
 		.call(xAxis);
 
 	// Add the X Axis Label
 	anglesSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 14)
+		.attr("font-size", axis_labels_font_size)
 		.attr("font-weight", 700)
 		.attr("text-anchor", "middle")
 		.attr("x", width / 2)
@@ -359,23 +376,24 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 
 	// Add the Y Axis
 	anglesSvg.append("g")
+		.attr("transform", "translate(" + angles_chart_x_offset + ",0)")
 		.call(d3.axisLeft(yScale));
 
 	// Add the Y Axis Label
 	anglesSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 14)
+		.attr("font-size", axis_labels_font_size)
 		.attr("font-weight", 700)
 		.attr("text-anchor", "middle")
 		.attr("x", 0 - (height / 2))
-		.attr("y", 10 - margin.left)
+		.attr("y", 10 + angles_chart_x_offset - margin.left)
 		.attr("transform", "rotate(-90)")
 		.text("Angle (degrees)");
 
 	// Add the title
 	anglesSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 16)
+		.attr("font-size", title_font_size)
 		.attr("font-weight", 700)
 		.attr("text-decoration", "underline")
 		.attr("text-anchor", "middle")
@@ -393,28 +411,29 @@ async function drawHighlightChart(teamNum, trialNum, ranges) {
 	var legendRectE = legendRect.enter()
 		.append("g")
 		.attr("transform", function (d, i) {
-			return 'translate(0, ' + (i * 20) + ')';
+			return 'translate(0, ' + (i * legend_labels_vertical_scale) + ')';
 		});
 
 	legendRectE
 		.append('rect')
-		.attr("width", 15)
-		.attr("height", 15)
+		.attr("class", "legend")
+		.attr("width", legend_rectangle_size)
+		.attr("height", legend_rectangle_size)
 		.style("fill", function (d) { return d.color; });
 
 	legendRectE
 		.append("text")
-		.attr("x", 20)
-		.attr("y", 10)
+		.attr("x", legend_rectangle_size + 5)
+		.attr("y", (legend_rectangle_size / 2) + (legend_labels_font_size / 2))
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 11)
+		.attr("font-size", legend_labels_font_size)
 		.text(function (d) { return d.text; });
 }
 
 async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, ranges) {
 
 	var positionScatterPlotXScale = d3.scaleLinear()
-		.range([0, pos_width])
+		.range([positions_chart_x_offset, pos_width])
 		.domain([-2.5, 2.5]);
 	var positionScatterPlotYScale = d3.scaleLinear()
 		.range([pos_height, 0])
@@ -519,14 +538,14 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 
 	// Add the X Axis
 	positionsSvg.append("g")
-		.attr("transform", "translate(0," + pos_height + ")")
+		.attr("transform", "translate(" + positions_chart_x_offset + "," + pos_height + ")")
 		.attr("font-family", "Lato")
 		.call(xAxis);
 
 	// Add the X Axis Label
 	positionsSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 14)
+		.attr("font-size", axis_labels_font_size)
 		.attr("font-weight", 700)
 		.attr("text-anchor", "middle")
 		.attr("x", pos_width / 2)
@@ -540,18 +559,18 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 	// Add the Y Axis Label
 	positionsSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 14)
+		.attr("font-size", axis_labels_font_size)
 		.attr("font-weight", 700)
 		.attr("text-anchor", "middle")
 		.attr("x", 0 - (pos_height / 2))
-		.attr("y", 10 - pos_margin.left)
+		.attr("y", 10 + positions_chart_y_axis_offset - pos_margin.left)
 		.attr("transform", "rotate(-90)")
 		.text("Y Position (meters)");
 
 	// Add the title
 	positionsSvg.append("text")
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 16)
+		.attr("font-size", title_font_size)
 		.attr("font-weight", 700)
 		.attr("text-decoration", "underline")
 		.attr("text-anchor", "middle")
@@ -569,21 +588,21 @@ async function drawPositionHighlightChart(teamNum, trialNum, containingDiv, rang
 	var legendRectE = legendRect.enter()
 		.append("g")
 		.attr("transform", function (d, i) {
-			return 'translate(0, ' + (i * 20) + ')';
+			return 'translate(0, ' + (i * legend_labels_vertical_scale) + ')';
 		});
 
 	legendRectE
 		.append('rect')
-		.attr("width", 15)
-		.attr("height", 15)
+		.attr("width", legend_rectangle_size)
+		.attr("height", legend_rectangle_size)
 		.style("fill", function (d) { return d.range.color; });
 
 	legendRectE
 		.append("text")
-		.attr("x", 20)
-		.attr("y", 10)
+		.attr("x", legend_rectangle_size + 5)
+		.attr("y", (legend_rectangle_size / 2) + (legend_labels_font_size / 2))
 		.attr("font-family", "sans-serif")
-		.attr("font-size", 11)
+		.attr("font-size", legend_labels_font_size)
 		.text(function (d) { return d.range.label; });
 }
 
